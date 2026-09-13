@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>Clinimetría</title>
+<meta name="theme-color" content="#0a1220">
+<meta name="description" content="Calculadoras clínicas, valores normales, escalas y algoritmos de manejo para uso médico.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clinimetría">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#0a1220; --panel:#111c33; --panel2:#152140; --line:rgba(255,255,255,.08);
+  --text:#eef2ff; --muted:#93a0c8; --accent:#4fd1c5;
+  --normal:#51cf66; --leve:#a9e34b; --moderado:#ffd43b; --grave:#ff922b; --critico:#ff5252; --info:#74c0fc;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;}
+body{background:radial-gradient(circle at 15% -10%, #16244a 0%, var(--bg) 55%);min-height:100vh;padding-bottom:env(safe-area-inset-bottom);}
+header{position:sticky;top:0;z-index:20;background:rgba(10,18,32,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 14px 10px;}
+h1{margin:0 0 8px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:8px;}
+h1 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);}
+h1 small{font-weight:400;color:var(--muted);font-size:13px;}
+#search{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 12px;font-size:15px;outline:none;}
+#search:focus{border-color:var(--accent);}
+.tabs{display:flex;gap:6px;margin-top:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:none;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);white-space:nowrap;}
+.tab.on{background:var(--accent);color:#04231d;border-color:transparent;}
+main{padding:14px;max-width:900px;margin:0 auto;}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 4px 8px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:transform .1s;}
+.card:active{transform:scale(.98);}
+.card b{font-size:14.5px;}
+.card p{margin:4px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4;}
+.card .catlabel{display:inline-block;font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+#empty{text-align:center;color:var(--muted);padding:40px 0;font-size:13px;}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 10px 34px;}
+/* Sheet */
+#sheet-bg{position:fixed;inset:0;background:rgba(3,6,16,.6);backdrop-filter:blur(2px);z-index:40;display:none;}
+#sheet-bg.show{display:block;}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:linear-gradient(180deg,var(--panel2),var(--panel));border-radius:20px 20px 0 0;padding:14px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,0,1);max-height:88vh;overflow-y:auto;box-shadow:0 -10px 40px rgba(0,0,0,.5);}
+#sheet.show{transform:translateY(0);}
+.grabber{width:40px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 12px;}
+.sh-title{font-size:19px;font-weight:800;margin-bottom:2px;}
+.sh-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600;}
+.field input, .field select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 11px;font-size:15px;outline:none;-webkit-appearance:none;appearance:none;}
+.field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2393a0c8'><path d='M5 7l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:32px;}
+.field input:focus, .field select:focus{border-color:var(--accent);}
+.boolrow{display:flex;gap:8px;}
+.boolrow button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font-size:13.5px;font-weight:600;}
+.boolrow button.sel{background:var(--accent);color:#04231d;border-color:transparent;}
+#result{margin-top:16px;border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid var(--line);}
+#result .rv{font-size:26px;font-weight:800;}
+#result .ru{font-size:13px;color:var(--muted);margin-left:4px;}
+#result .rt{margin-top:6px;font-size:13.5px;font-weight:700;}
+#result .rd{margin-top:4px;font-size:12px;color:var(--muted);}
+.sev-normal{color:var(--normal);} .sev-leve{color:var(--leve);} .sev-moderado{color:var(--moderado);}
+.sev-grave{color:var(--grave);} .sev-critico{color:var(--critico);} .sev-info{color:var(--info);}
+#result.bar{border-left:4px solid transparent;}
+.bar-normal{border-left-color:var(--normal)!important;} .bar-leve{border-left-color:var(--leve)!important;}
+.bar-moderado{border-left-color:var(--moderado)!important;} .bar-grave{border-left-color:var(--grave)!important;}
+.bar-critico{border-left-color:var(--critico)!important;} .bar-info{border-left-color:var(--info)!important;}
+.sh-ref{margin-top:14px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:10px;}
+.sh-close{margin-top:14px;width:100%;background:rgba(255,255,255,.08);color:var(--text);border:none;border-radius:12px;padding:11px;font-weight:700;font-size:13.5px;}
+/* Reference tables */
+.reftable{width:100%;border-collapse:collapse;font-size:13px;}
+.reftable td{padding:8px 6px;border-bottom:1px solid var(--line);}
+.reftable td:first-child{font-weight:600;}
+.reftable td:nth-child(2){color:var(--accent);font-weight:700;text-align:right;white-space:nowrap;}
+.reftable td:last-child{color:var(--muted);font-size:11.5px;text-align:right;}
+.refgroup{margin-bottom:6px;}
+/* Algorithms */
+.algo-steps{margin:10px 0 0;padding-left:20px;}
+.algo-steps li{margin-bottom:9px;font-size:13.5px;line-height:1.45;}
+.warn-banner{background:rgba(255,146,43,.12);border:1px solid rgba(255,146,43,.3);color:#ffb066;border-radius:10px;padding:8px 12px;font-size:11.5px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="dot"></span>Clinimetría <small>· parámetros, escalas y algoritmos</small></h1>
+  <input id="search" placeholder="Buscar calculadora, escala, valor o algoritmo…" autocomplete="off" autocorrect="off" spellcheck="false">
+  <div class="tabs" id="tabs"></div>
+</header>
+<main id="main">
+  <div class="warn-banner">Herramienta de apoyo clínico. No reemplaza el juicio médico ni los protocolos institucionales vigentes.</div>
+  <div id="content"></div>
+  <div id="empty" style="display:none;">Sin resultados para tu búsqueda.</div>
+</main>
+<footer>Fuentes: literatura y guías clínicas citadas en cada herramienta. Funciona sin conexión.</footer>
+
+<div id="sheet-bg" onclick="closeSheet()"></div>
+<div id="sheet"><div class="grabber"></div><div id="sheet-content"></div></div>
+
+<script src="calcs.js"></script>
+<script src="refs.js"></script>
+<script src="algos.js"></script>
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
