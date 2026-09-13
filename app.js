@@ -1,6 +1,7 @@
 let activeTab = "todos";
 let query = "";
 
+const CALCS = [...CALCS_BASE, ...CALCS2];
 const CAT_NAME = Object.fromEntries(CATS_CLIN.map(c=>[c.id,c.nombre]));
 
 function buildTabs(){
@@ -85,6 +86,10 @@ function openCalc(id){
       return `<div class="field"><label>${f.label}${f.unidad?` (${f.unidad})`:""}</label>
         <input type="number" inputmode="decimal" step="${f.step||1}" ${f.min!==undefined?`min="${f.min}"`:""} ${f.max!==undefined?`max="${f.max}"`:""} value="${f.default}" data-field="${f.id}"></div>`;
     }
+    if (f.tipo==="date"){
+      return `<div class="field"><label>${f.label}</label>
+        <input type="date" value="${f.default}" data-field="${f.id}"></div>`;
+    }
     if (f.tipo==="bool"){
       return `<div class="field"><label>${f.label}</label><div class="boolrow" data-field="${f.id}">
         ${f.opciones.map((o,i)=>`<button type="button" data-value="${o.value}" class="${i===f.opciones.length-1?'sel':''}">${o.label}</button>`).join("")}
@@ -135,6 +140,10 @@ function openCalc(id){
 function updateCalc(c){
   const vals = {};
   c.campos.forEach(f=>{ vals[f.id] = f.tipo==="num" ? parseFloat(currentVals[f.id]) : currentVals[f.id]; });
+  if (c.campos.some(f=>f.tipo==="date" && !vals[f.id])){
+    document.getElementById("result").innerHTML = `<span style="color:var(--muted)">Selecciona una fecha.</span>`;
+    return;
+  }
   if (c.campos.some(f=>f.tipo==="num" && isNaN(vals[f.id]))){
     document.getElementById("result").innerHTML = `<span style="color:var(--muted)">Completa todos los campos numéricos.</span>`;
     return;

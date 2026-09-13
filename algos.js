@@ -124,6 +124,20 @@ const ALGOS = [
   ],
   nota:"Basado en recomendaciones ATLS y protocolos de transfusión masiva en trauma."
 },
+{
+  id:"codigoictus", nombre:"Código de Ictus — activación intrahospitalaria", categoria:"Neurología",
+  pasos:[
+    "Reconocimiento prehospitalario/triage: déficit neurológico agudo focal (escala tipo Cincinnati o FAST) con hora de inicio conocida o última vez visto normal <24 h.",
+    "Activar el código de ictus y avisar en paralelo a neurología, imagenología y laboratorio — prioridad máxima, sin esperar cola de triage.",
+    "Meta puerta-médico: <10 min. Meta puerta-TC (inicio del estudio): <25 min. Meta puerta-lectura de TC: <45 min.",
+    "Glucemia capilar inmediata (descartar hipoglucemia como mimic) y vía venosa periférica para laboratorio y contraste.",
+    "TC de cerebro sin contraste urgente; considerar angioTC/perfusión si se sospecha oclusión de gran vaso y el paciente podría ser candidato a trombectomía.",
+    "Meta puerta-aguja (trombolisis EV, si aplica): <60 min (idealmente <45 min).",
+    "Meta puerta-punción (trombectomía mecánica, si aplica): <90 min, con traslado inmediato a centro con capacidad endovascular si el centro actual no la tiene.",
+    "Registrar tiempos del proceso (puerta, TC, aguja, punción) para auditoría de calidad del código.",
+  ],
+  nota:"Metas de tiempo según AHA/ASA Target: Stroke y guías locales de código de ictus; adaptar a los recursos y protocolos institucionales."
+},
 ];
 
 if (typeof module !== "undefined") module.exports = { ALGOS };

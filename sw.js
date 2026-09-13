@@ -1,9 +1,10 @@
-const CACHE = "clinimetria-v1";
+const CACHE = "clinimetria-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
   "./calcs.js",
+  "./calcs2.js",
   "./refs.js",
   "./algos.js",
   "./manifest.json",

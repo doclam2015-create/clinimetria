@@ -18,6 +18,8 @@ const CATS_CLIN = [
   {id:"trauma", nombre:"Trauma"},
   {id:"infecto", nombre:"Infectología y sepsis"},
   {id:"hemato", nombre:"Anticoagulación y hemostasia"},
+  {id:"farmacos", nombre:"Fármacos y conversiones"},
+  {id:"reumatologia", nombre:"Reumatología"},
 ];
 
 function band(valor, tramos){
@@ -28,7 +30,20 @@ function band(valor, tramos){
 }
 function sumaCampos(v){ return Object.values(v).reduce((a,b)=>a+(+b||0),0); }
 
-const CALCS = [
+// Curva de disociación de la oxihemoglobina (Severinghaus, 1979): SaO2 = f(PaO2).
+function severinghaus(po2){ return 1 / ((23400/(Math.pow(po2,3)+150*po2)) + 1); }
+// Inversión numérica (Ellis, 1989 resuelve esto con una aproximación; aquí se resuelve por bisección).
+function paO2DesdeSpO2(spo2pct){
+  const target = Math.min(Math.max(spo2pct,1),99.9)/100;
+  let lo=1, hi=600;
+  for (let i=0;i<60;i++){
+    const mid=(lo+hi)/2;
+    if (severinghaus(mid) < target) lo=mid; else hi=mid;
+  }
+  return (lo+hi)/2;
+}
+
+const CALCS_BASE = [
 // ---------- FÓRMULAS ----------
 {
   id:"imc", nombre:"Índice de Masa Corporal (IMC)", categoria:"formulas",
@@ -65,7 +80,7 @@ const CALCS = [
   referencia:"Mosteller RD. NEJM 1987."
 },
 {
-  id:"cg", nombre:"Cockcroft-Gault (Clearance de creatinina)", categoria:"nefro",
+  id:"cg", nombre:"Cockcroft-Gault (ClCr — clearance de creatinina)", categoria:"nefro",
   resumen:"Estima el clearance de creatinina para ajuste de fármacos.",
   campos:[
     {id:"edad", label:"Edad", tipo:"num", unidad:"años", min:1, max:120, default:60},
@@ -87,7 +102,7 @@ const CALCS = [
   referencia:"Cockcroft DW, Gault MH. Nephron 1976."
 },
 {
-  id:"ckdepi", nombre:"CKD-EPI 2021 (eGFR sin raza)", categoria:"nefro",
+  id:"ckdepi", nombre:"CKD-EPI 2021 (IFG — filtración glomerular estimada)", categoria:"nefro",
   resumen:"Tasa de filtración glomerular estimada.",
   campos:[
     {id:"edad", label:"Edad", tipo:"num", unidad:"años", min:1, max:120, default:60},
@@ -252,6 +267,51 @@ const CALCS = [
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Definición de Berlín de SDRA, 2012 (requiere PEEP/CPAP ≥ 5 cmH₂O)."
+},
+{
+  id:"safi", nombre:"Índice SpO₂/FiO₂ (sustituto no invasivo de PaFi)", categoria:"respiratorio",
+  resumen:"Estima el PaO₂/FiO₂ y el subscore SOFA respiratorio a partir de la saturación por pulsioximetría, sin necesidad de gasometría arterial.",
+  campos:[
+    {id:"spo2", label:"SpO₂ (pulsioximetría)", tipo:"num", unidad:"%", min:60, max:100, step:1, default:98},
+    {id:"fio2", label:"Fuente de oxígeno", tipo:"select", opciones:[
+      {value:"0.21", label:"Aire ambiental (sin O₂ suplementario) — FiO₂ 21%"},
+      {value:"0.24", label:"Cánula nasal 1 L/min — FiO₂ ≈24%"},
+      {value:"0.28", label:"Cánula nasal 2 L/min — FiO₂ ≈28%"},
+      {value:"0.32", label:"Cánula nasal 3 L/min — FiO₂ ≈32%"},
+      {value:"0.36", label:"Cánula nasal 4 L/min — FiO₂ ≈36%"},
+      {value:"0.40", label:"Cánula nasal 5 L/min / mascarilla simple 5–6 L/min — FiO₂ ≈40%"},
+      {value:"0.44", label:"Cánula nasal 6 L/min — FiO₂ ≈44%"},
+      {value:"0.50", label:"Mascarilla simple 6–7 L/min — FiO₂ ≈50%"},
+      {value:"0.60", label:"Mascarilla simple 7–8 L/min / mascarilla con reservorio 6 L/min — FiO₂ ≈60%"},
+      {value:"0.70", label:"Mascarilla con reservorio 7 L/min — FiO₂ ≈70%"},
+      {value:"0.80", label:"Mascarilla con reservorio 8 L/min — FiO₂ ≈80%"},
+      {value:"0.90", label:"Mascarilla con reservorio 9 L/min — FiO₂ ≈90%"},
+      {value:"0.95", label:"Mascarilla con reservorio 10–15 L/min — FiO₂ ≈95%"},
+      {value:"0.30", label:"Venturi 30%"},
+      {value:"0.35", label:"Venturi 35%"},
+      {value:"0.40", label:"Venturi 40%"},
+      {value:"0.50", label:"Venturi 50%"},
+      {value:"1.00", label:"FiO₂ 100% (ventilación mecánica / reservorio con sello)"},
+    ]},
+  ],
+  calcular(v){
+    const spo2 = v.spo2, fio2 = v.fio2;
+    const sf = spo2/fio2;
+    const pao2est = paO2DesdeSpO2(spo2);
+    const pfEst = pao2est/fio2;
+    let sofa;
+    if (pfEst>=400) sofa=0; else if (pfEst>=300) sofa=1; else if (pfEst>=200) sofa=2; else if (pfEst>=100) sofa=3; else sofa=4;
+    return {
+      valor:+pfEst.toFixed(0), unidad:"mmHg (PaFi equivalente)",
+      detalle:`SpO₂/FiO₂ = ${sf.toFixed(0)} mmHg · PaO₂ estimado (Severinghaus-Ellis) = ${pao2est.toFixed(0)} mmHg · SOFA respiratorio = ${sofa}`
+    };
+  },
+  interpretar(x, v){
+    const t = band(x,[{max:100,label:"SDRA grave (equivalente)",severidad:"critico"},{max:200,label:"SDRA moderado (equivalente)",severidad:"grave"},{max:300,label:"SDRA leve (equivalente)",severidad:"moderado"},{label:"PaFi equivalente adecuado",severidad:"normal"}]);
+    const warn = v.spo2>97 ? " — con SpO₂ >97% la estimación es menos precisa (curva de disociación aplanada); confirmar con gasometría arterial si es posible." : "";
+    return {texto:t.label+warn, severidad:t.severidad};
+  },
+  referencia:"Rice TW, et al. Chest 2007 (correlación SpO₂/FiO₂ con PaO₂/FiO₂). Pandharipande PP, et al. Crit Care Med 2009 (SOFA respiratorio no invasivo). Curva de disociación: Severinghaus JW, 1979; inversión numérica equivalente a Ellis RK, 1989. Válido solo con SpO₂ ≤97–98%, sin mala perfusión periférica ni dishemoglobinemias."
 },
 {
   id:"aa", nombre:"Gradiente alvéolo-arterial de O₂", categoria:"respiratorio",
@@ -565,9 +625,11 @@ const CALCS = [
     {id:"inr", label:"INR", tipo:"num", unidad:"", min:0.1, step:0.01, default:1.2},
     {id:"cr", label:"Creatinina", tipo:"num", unidad:"mg/dL", min:0.1, step:0.01, default:1.0},
     {id:"na", label:"Sodio sérico", tipo:"num", unidad:"mEq/L", min:100, max:145, default:137},
+    {id:"dialisis", label:"Diálisis ≥2 veces en los últimos 7 días (o CRRT ≥24h)", tipo:"bool", opciones:[{value:"1",label:"Sí"},{value:"0",label:"No"}]},
   ],
   calcular(v){
-    const bili = Math.max(v.bili,1), inr = Math.max(v.inr,1), cr = Math.min(Math.max(v.cr,1),4);
+    const bili = Math.max(v.bili,1), inr = Math.max(v.inr,1);
+    const cr = v.dialisis==="1" ? 4.0 : Math.min(Math.max(v.cr,1),4);
     let meld = 3.78*Math.log(bili) + 11.2*Math.log(inr) + 9.57*Math.log(cr) + 6.43;
     meld = Math.round(meld);
     const na = Math.min(Math.max(v.na,125),137);
@@ -744,6 +806,118 @@ const CALCS = [
   },
   referencia:"Charlson ME, et al. J Chronic Dis 1987."
 },
+{
+  id:"heart", nombre:"HEART Score (SCA en dolor torácico)", categoria:"cardio",
+  resumen:"Riesgo de evento cardiovascular mayor (MACE) a 6 semanas en dolor torácico en urgencias.",
+  campos:[
+    {id:"h", label:"Historia clínica", tipo:"select", opciones:[{value:"0",label:"Poco sospechosa (0)"},{value:"1",label:"Moderadamente sospechosa (1)"},{value:"2",label:"Altamente sospechosa (2)"}]},
+    {id:"e", label:"ECG", tipo:"select", opciones:[{value:"0",label:"Normal (0)"},{value:"1",label:"Alteración inespecífica de repolarización (1)"},{value:"2",label:"Depresión significativa del ST (2)"}]},
+    {id:"a", label:"Edad", tipo:"select", opciones:[{value:"0",label:"<45 años (0)"},{value:"1",label:"45–64 años (1)"},{value:"2",label:"≥65 años (2)"}]},
+    {id:"r", label:"Factores de riesgo cardiovascular (HTA, DM, tabaquismo, dislipidemia, obesidad, antecedente familiar, aterosclerosis conocida)", tipo:"select", opciones:[{value:"0",label:"Ninguno (0)"},{value:"1",label:"1–2 factores (1)"},{value:"2",label:"≥3 factores o aterosclerosis conocida (2)"}]},
+    {id:"t", label:"Troponina", tipo:"select", opciones:[{value:"0",label:"≤ límite normal (0)"},{value:"1",label:"1–3× límite normal (1)"},{value:"2",label:">3× límite normal (2)"}]},
+  ],
+  calcular(v){ return {valor: sumaCampos(v), unidad:"/10"}; },
+  interpretar(x){
+    const t = band(x,[{max:4,label:"Riesgo bajo (~1-2% MACE a 6 semanas) — alta precoz razonable",severidad:"normal"},{max:7,label:"Riesgo moderado (~12-17% MACE) — observación y estudio adicional",severidad:"moderado"},{label:"Riesgo alto (~50-65% MACE) — manejo invasivo precoz",severidad:"grave"}]);
+    return {texto:t.label, severidad:t.severidad};
+  },
+  referencia:"Six AJ, et al. Neth Heart J 2008; Backus BE, et al. Int J Cardiol 2013."
+},
+{
+  id:"kcl", nombre:"Reposición de potasio (hipokalemia)", categoria:"nefro",
+  resumen:"Orienta la dosis total de reposición según el potasio sérico.",
+  campos:[{id:"k", label:"Potasio sérico", tipo:"num", unidad:"mEq/L", min:1, max:5.5, step:0.1, default:3.2}],
+  calcular(v){
+    const k=v.k;
+    let dosis, ritmo;
+    if (k>=3.5){ dosis="20–40 mEq"; ritmo="vía oral si es posible, o EV a ≤10 mEq/h"; }
+    else if (k>=3.0){ dosis="40–60 mEq"; ritmo="EV a ≤10 mEq/h por vía periférica"; }
+    else if (k>=2.5){ dosis="60–80 mEq"; ritmo="EV a ≤10–20 mEq/h; considerar monitorización ECG"; }
+    else { dosis="80–100+ mEq"; ritmo="EV con monitorización ECG continua; >10 mEq/h requiere vía central"; }
+    return {valor:dosis, unidad:"totales (fraccionados)", detalle:`Ritmo sugerido: ${ritmo}`};
+  },
+  interpretar(x, v){
+    if (v.k<2.5) return {texto:"Hipokalemia grave — riesgo de arritmias, reponer con monitorización estrecha", severidad:"critico"};
+    if (v.k<3.0) return {texto:"Hipokalemia moderada", severidad:"grave"};
+    if (v.k<3.5) return {texto:"Hipokalemia leve", severidad:"moderado"};
+    return {texto:"Potasio normal — sin reposición", severidad:"normal"};
+  },
+  referencia:"Dosis orientativas de referencia; ajustar según magnesemia (corregir Mg si está bajo, ya que impide corregir el K⁺), función renal y cardiopatía de base. Máx. periférico habitual 10 mEq/h; vía central hasta 20 mEq/h con monitor."
+},
+{
+  id:"insulina", nombre:"Insulina de corrección (regla 1700)", categoria:"nutricion",
+  resumen:"Estima el factor de sensibilidad a la insulina y la dosis de corrección.",
+  campos:[
+    {id:"peso", label:"Peso", tipo:"num", unidad:"kg", min:1, default:70},
+    {id:"sensibilidad", label:"Dosis diaria total estimada", tipo:"select", opciones:[{value:"0.3",label:"Paciente sensible — 0.3 U/kg/día"},{value:"0.5",label:"Estándar — 0.5 U/kg/día"},{value:"0.7",label:"Resistente a la insulina — 0.7 U/kg/día"}]},
+    {id:"glucosa", label:"Glucemia actual", tipo:"num", unidad:"mg/dL", min:40, default:250},
+    {id:"meta", label:"Meta de glucemia", tipo:"num", unidad:"mg/dL", min:70, default:130},
+  ],
+  calcular(v){
+    const tdd = v.peso*v.sensibilidad;
+    const fsi = 1700/tdd;
+    const correccion = Math.max(0, (v.glucosa-v.meta)/fsi);
+    return {valor:+correccion.toFixed(1), unidad:"U de insulina rápida", detalle:`Dosis diaria total estimada: ${tdd.toFixed(0)} U/día · Factor de sensibilidad: 1 U baja ≈ ${fsi.toFixed(0)} mg/dL`};
+  },
+  interpretar(x){ return {texto:"Dosis de corrección estimada — ajustar según protocolo institucional y respuesta individual", severidad:"info"}; },
+  referencia:"Regla de 1700 (Davidson PC, et al.) para insulina rápida en pacientes tratados con insulina. No aplica a pacientes insulina-vírgenes sin ajuste clínico."
+},
+{
+  id:"infusion", nombre:"Velocidad de infusión de drogas EV (mcg/kg/min → mL/h)", categoria:"urgencias",
+  resumen:"Convierte una dosis objetivo en velocidad de bomba de infusión.",
+  campos:[
+    {id:"dosis", label:"Dosis objetivo", tipo:"num", unidad:"mcg/kg/min", min:0.01, step:0.01, default:0.1},
+    {id:"peso", label:"Peso", tipo:"num", unidad:"kg", min:1, default:70},
+    {id:"conc", label:"Concentración de la solución", tipo:"num", unidad:"mg/mL", min:0.001, step:0.001, default:0.016},
+  ],
+  calcular(v){
+    const mlh = (v.dosis*v.peso*60)/(v.conc*1000);
+    return {valor:+mlh.toFixed(2), unidad:"mL/h"};
+  },
+  interpretar(x){ return {texto:"Verificar contra la velocidad máxima segura de la bomba y el protocolo de titulación del fármaco", severidad:"info"}; },
+  referencia:"mL/h = (dosis mcg/kg/min × peso × 60) / (concentración mg/mL × 1000). Ej. noradrenalina 4 mg en 250 mL = 0.016 mg/mL."
+},
+{
+  id:"apache2", nombre:"APACHE II", categoria:"urgencias",
+  resumen:"Severidad y mortalidad estimada en pacientes críticos (primeras 24 h de UCI).",
+  campos:[
+    {id:"temp", label:"Temperatura rectal", tipo:"select", opciones:[{value:"4",label:"≥41°C o <30°C (4)"},{value:"3",label:"39–40.9°C o 30–31.9°C (3)"},{value:"2",label:"32–33.9°C (2)"},{value:"1",label:"38.5–38.9°C o 34–35.9°C (1)"},{value:"0",label:"36–38.4°C (0)"}]},
+    {id:"pam", label:"Presión arterial media", tipo:"select", opciones:[{value:"4",label:"≥160 o <50 mmHg (4)"},{value:"3",label:"130–159 mmHg (3)"},{value:"2",label:"110–129 o 50–69 mmHg (2)"},{value:"0",label:"70–109 mmHg (0)"}]},
+    {id:"fc", label:"Frecuencia cardíaca", tipo:"select", opciones:[{value:"4",label:"≥180 o <40 lpm (4)"},{value:"3",label:"140–179 o 40–54 lpm (3)"},{value:"2",label:"110–139 o 55–69 lpm (2)"},{value:"0",label:"70–109 lpm (0)"}]},
+    {id:"fr", label:"Frecuencia respiratoria", tipo:"select", opciones:[{value:"4",label:"≥50 o <6 rpm (4)"},{value:"3",label:"35–49 rpm (3)"},{value:"2",label:"6–9 rpm (2)"},{value:"1",label:"25–34 o 10–11 rpm (1)"},{value:"0",label:"12–24 rpm (0)"}]},
+    {id:"ox", label:"Oxigenación (A-aDO₂ si FiO₂≥0.5, o PaO₂ si FiO₂<0.5)", tipo:"select", opciones:[{value:"4",label:"A-aDO₂ ≥500 o PaO₂ <55 (4)"},{value:"3",label:"A-aDO₂ 350–499 o PaO₂ 55–60 (3)"},{value:"2",label:"A-aDO₂ 200–349 (2)"},{value:"1",label:"PaO₂ 61–70 (1)"},{value:"0",label:"A-aDO₂ <200 o PaO₂ >70 (0)"}]},
+    {id:"ph", label:"pH arterial", tipo:"select", opciones:[{value:"4",label:"≥7.7 o <7.15 (4)"},{value:"3",label:"7.6–7.69 o 7.15–7.24 (3)"},{value:"2",label:"7.25–7.32 (2)"},{value:"1",label:"7.5–7.59 (1)"},{value:"0",label:"7.33–7.49 (0)"}]},
+    {id:"na", label:"Sodio sérico", tipo:"select", opciones:[{value:"4",label:"≥180 o <111 mEq/L (4)"},{value:"3",label:"160–179 o 111–119 mEq/L (3)"},{value:"2",label:"155–159 o 120–129 mEq/L (2)"},{value:"1",label:"150–154 mEq/L (1)"},{value:"0",label:"130–149 mEq/L (0)"}]},
+    {id:"k", label:"Potasio sérico", tipo:"select", opciones:[{value:"4",label:"≥7 o <2.5 mEq/L (4)"},{value:"3",label:"6–6.9 mEq/L (3)"},{value:"2",label:"2.5–2.9 mEq/L (2)"},{value:"1",label:"5.5–5.9 o 3–3.4 mEq/L (1)"},{value:"0",label:"3.5–5.4 mEq/L (0)"}]},
+    {id:"cr", label:"Creatinina sérica", tipo:"select", opciones:[{value:"3.5",label:"≥3.5 mg/dL (3.5)"},{value:"2",label:"2–3.4 mg/dL (2)"},{value:"1.5",label:"1.5–1.9 mg/dL (1.5)"},{value:"1",label:"<0.6 mg/dL (1)"},{value:"0",label:"0.6–1.4 mg/dL (0)"}]},
+    {id:"faga", label:"Falla renal aguda (duplica puntos de creatinina)", tipo:"bool", opciones:[{value:"1",label:"Sí"},{value:"0",label:"No"}]},
+    {id:"hto", label:"Hematocrito", tipo:"select", opciones:[{value:"4",label:"≥60 o <20% (4)"},{value:"2",label:"50–59.9 o 20–29.9% (2)"},{value:"1",label:"46–49.9% (1)"},{value:"0",label:"30–45.9% (0)"}]},
+    {id:"leuco", label:"Leucocitos", tipo:"select", opciones:[{value:"4",label:"≥40 o <1 (×10³/µL) (4)"},{value:"2",label:"20–39.9 o 1–2.9 (×10³/µL) (2)"},{value:"1",label:"15–19.9 ×10³/µL (1)"},{value:"0",label:"3–14.9 ×10³/µL (0)"}]},
+    {id:"gcs", label:"Glasgow (puntos = 15 − GCS actual)", tipo:"num", unidad:"puntos", min:0, max:12, default:0},
+    {id:"edad", label:"Edad", tipo:"select", opciones:[{value:"0",label:"<45 años (0)"},{value:"2",label:"45–54 años (2)"},{value:"3",label:"55–64 años (3)"},{value:"5",label:"65–74 años (5)"},{value:"6",label:"≥75 años (6)"}]},
+    {id:"cronico", label:"Insuficiencia orgánica crónica grave o inmunocompromiso", tipo:"select", opciones:[{value:"0",label:"No (0)"},{value:"2",label:"Sí, postoperatorio electivo (2)"},{value:"5",label:"Sí, no quirúrgico o postoperatorio de urgencia (5)"}]},
+  ],
+  calcular(v){
+    const n = x => +x || 0;
+    const crPts = v.faga==="1" ? n(v.cr)*2 : n(v.cr);
+    const total = n(v.temp)+n(v.pam)+n(v.fc)+n(v.fr)+n(v.ox)+n(v.ph)+n(v.na)+n(v.k)+crPts+n(v.hto)+n(v.leuco)+n(v.gcs)+n(v.edad)+n(v.cronico);
+    return {valor: total, unidad:"puntos"};
+  },
+  interpretar(x){
+    const t = band(x,[
+      {max:5, label:"Mortalidad hospitalaria aprox. ~4%", severidad:"normal"},
+      {max:10, label:"Mortalidad hospitalaria aprox. ~8%", severidad:"leve"},
+      {max:15, label:"Mortalidad hospitalaria aprox. ~15%", severidad:"moderado"},
+      {max:20, label:"Mortalidad hospitalaria aprox. ~25%", severidad:"moderado"},
+      {max:25, label:"Mortalidad hospitalaria aprox. ~40%", severidad:"grave"},
+      {max:30, label:"Mortalidad hospitalaria aprox. ~55%", severidad:"grave"},
+      {max:35, label:"Mortalidad hospitalaria aprox. ~73%", severidad:"critico"},
+      {label:"Mortalidad hospitalaria aprox. ~85%", severidad:"critico"},
+    ]);
+    return {texto:t.label+" (estimación general; el modelo original ajusta por categoría diagnóstica)", severidad:t.severidad};
+  },
+  referencia:"Knaus WA, et al. Crit Care Med 1985. Porcentajes de mortalidad aproximados y no ajustados por diagnóstico de ingreso."
+},
 ];
 
-if (typeof module !== "undefined") module.exports = { CALCS, CATS_CLIN };
+if (typeof module !== "undefined") module.exports = { CALCS: CALCS_BASE, CALCS_BASE, CATS_CLIN };
