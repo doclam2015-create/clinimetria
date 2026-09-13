@@ -17,7 +17,7 @@ const CATS_CLIN = [
   {id:"pediatria", nombre:"Pediatría"},
   {id:"trauma", nombre:"Trauma"},
   {id:"infecto", nombre:"Infectología y sepsis"},
-  {id:"hemato", nombre:"Anticoagulación y hemostasia"},
+  {id:"hemato", nombre:"Hematología y anticoagulación"},
   {id:"farmacos", nombre:"Fármacos y conversiones"},
   {id:"reumatologia", nombre:"Reumatología"},
 ];
@@ -263,7 +263,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor:+(v.pao2/v.fio2).toFixed(0), unidad:"mmHg"}; },
   interpretar(x){
-    const t = band(x,[{max:100,label:"SDRA grave",severidad:"critico"},{max:200,label:"SDRA moderado",severidad:"grave"},{max:300,label:"SDRA leve",severidad:"moderado"},{label:"Normal",severidad:"normal"}]);
+    const t = band(x,[{max:100.01,label:"≤100: SDRA grave",severidad:"critico"},{max:200.01,label:"101–200: SDRA moderado",severidad:"grave"},{max:300.01,label:"201–300: SDRA leve",severidad:"moderado"},{label:">300: normal",severidad:"normal"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Definición de Berlín de SDRA, 2012 (requiere PEEP/CPAP ≥ 5 cmH₂O)."
@@ -307,7 +307,7 @@ const CALCS_BASE = [
     };
   },
   interpretar(x, v){
-    const t = band(x,[{max:100,label:"SDRA grave (equivalente)",severidad:"critico"},{max:200,label:"SDRA moderado (equivalente)",severidad:"grave"},{max:300,label:"SDRA leve (equivalente)",severidad:"moderado"},{label:"PaFi equivalente adecuado",severidad:"normal"}]);
+    const t = band(x,[{max:100.01,label:"≤100: SDRA grave (equivalente)",severidad:"critico"},{max:200.01,label:"101–200: SDRA moderado (equivalente)",severidad:"grave"},{max:300.01,label:"201–300: SDRA leve (equivalente)",severidad:"moderado"},{label:"PaFi equivalente adecuado",severidad:"normal"}]);
     const warn = v.spo2>97 ? " — con SpO₂ >97% la estimación es menos precisa (curva de disociación aplanada); confirmar con gasometría arterial si es posible." : "";
     return {texto:t.label+warn, severidad:t.severidad};
   },
@@ -424,7 +424,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: (+v.ocular)+(+v.verbal)+(+v.motora), unidad:"/15"}; },
   interpretar(x){
-    const t = band(x,[{max:9,label:"TEC grave",severidad:"critico"},{max:13,label:"TEC moderado",severidad:"grave"},{max:15,label:"TEC leve",severidad:"leve"},{label:"Normal",severidad:"normal"}]);
+    const t = band(x,[{max:9,label:"3–8: TEC grave",severidad:"critico"},{max:13,label:"9–12: TEC moderado",severidad:"grave"},{max:15,label:"13–14: TEC leve",severidad:"leve"},{label:"15: normal",severidad:"normal"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Teasdale G, Jennett B. Lancet 1974. GCS ≤8: considerar vía aérea avanzada."
@@ -433,7 +433,7 @@ const CALCS_BASE = [
   id:"news2", nombre:"NEWS2 (National Early Warning Score)", categoria:"urgencias",
   resumen:"Detecta deterioro clínico precoz en pacientes hospitalizados.",
   campos:[
-    {id:"fr", label:"Frecuencia respiratoria", tipo:"select", opciones:[{value:"3",label:"≤8 rpm"},{value:"0",label:"9–11 rpm"},{value:"0",label:"12–20 rpm"},{value:"2",label:"21–24 rpm"},{value:"3",label:"≥25 rpm"}]},
+    {id:"fr", label:"Frecuencia respiratoria", tipo:"select", opciones:[{value:"3",label:"≤8 rpm"},{value:"1",label:"9–11 rpm"},{value:"0",label:"12–20 rpm"},{value:"2",label:"21–24 rpm"},{value:"3",label:"≥25 rpm"}]},
     {id:"spo2", label:"Saturación de O₂", tipo:"select", opciones:[{value:"3",label:"≤91%"},{value:"2",label:"92–93%"},{value:"1",label:"94–95%"},{value:"0",label:"≥96%"}]},
     {id:"o2sup", label:"Oxígeno suplementario", tipo:"select", opciones:[{value:"0",label:"Aire ambiental"},{value:"2",label:"Requiere O₂ suplementario"}]},
     {id:"ta", label:"PA sistólica", tipo:"select", opciones:[{value:"3",label:"≤90 mmHg"},{value:"2",label:"91–100 mmHg"},{value:"1",label:"101–110 mmHg"},{value:"0",label:"111–219 mmHg"},{value:"3",label:"≥220 mmHg"}]},
@@ -494,7 +494,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/5"}; },
   interpretar(x){
-    const t = band(x,[{max:1,label:"Riesgo bajo — manejo ambulatorio",severidad:"normal"},{max:2,label:"Riesgo intermedio — considerar hospitalización breve",severidad:"moderado"},{max:3,label:"Riesgo alto — hospitalizar",severidad:"grave"},{label:"Riesgo muy alto — considerar UCI",severidad:"critico"}]);
+    const t = band(x,[{max:2,label:"0–1: riesgo bajo — manejo ambulatorio",severidad:"normal"},{max:3,label:"2: riesgo intermedio — considerar hospitalización breve",severidad:"moderado"},{max:4,label:"3: riesgo alto — hospitalizar",severidad:"grave"},{label:"4–5: riesgo muy alto — considerar UCI",severidad:"critico"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Lim WS, et al. Thorax 2003."
@@ -533,7 +533,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"puntos"}; },
   interpretar(x){
-    const t = band(x,[{max:2,label:"Riesgo de sangrado bajo",severidad:"normal"},{label:"Riesgo de sangrado alto — extremar precaución y controles frecuentes",severidad:"grave"}]);
+    const t = band(x,[{max:3,label:"0–2: riesgo de sangrado bajo-moderado",severidad:"normal"},{label:"≥3: riesgo de sangrado alto — extremar precaución y controles frecuentes",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Pisters R, et al. Chest 2010. No debe usarse solo para negar anticoagulación."
@@ -555,7 +555,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"puntos"}; },
   interpretar(x){
-    const t = band(x,[{max:0,label:"Probabilidad baja — dímero D para descartar",severidad:"normal"},{max:2,label:"Probabilidad moderada",severidad:"moderado"},{label:"Probabilidad alta — considerar ecografía doppler directa",severidad:"grave"}]);
+    const t = band(x,[{max:1,label:"≤0: probabilidad baja — dímero D para descartar",severidad:"normal"},{max:3,label:"1–2: probabilidad moderada",severidad:"moderado"},{label:"≥3: probabilidad alta — considerar ecografía doppler directa",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Wells PS, et al. NEJM 2003."
@@ -574,7 +574,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"puntos"}; },
   interpretar(x){
-    const t = band(x,[{max:1.9,label:"Probabilidad baja",severidad:"normal"},{max:6,label:"Probabilidad moderada",severidad:"moderado"},{label:"Probabilidad alta",severidad:"grave"}]);
+    const t = band(x,[{max:2,label:"<2: probabilidad baja",severidad:"normal"},{max:6.5,label:"2–6: probabilidad moderada",severidad:"moderado"},{label:">6: probabilidad alta",severidad:"grave"}]);
     return {texto: t.label+" — (score de 2 niveles: ≤4 'TEP improbable', >4 'TEP probable')", severidad:t.severidad};
   },
   referencia:"Wells PS, et al. Ann Intern Med 2001; versión dicotómica Christopher study 2006."
@@ -612,7 +612,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/15"}; },
   interpretar(x){
-    const t = band(x,[{max:6,label:"Clase A — buen pronóstico (supervivencia 1 año ~100%)",severidad:"normal"},{max:9,label:"Clase B — pronóstico intermedio (~80%)",severidad:"moderado"},{label:"Clase C — mal pronóstico (~45%), considerar trasplante",severidad:"grave"}]);
+    const t = band(x,[{max:7,label:"5–6: Clase A — buen pronóstico (supervivencia 1 año ~100%)",severidad:"normal"},{max:10,label:"7–9: Clase B — pronóstico intermedio (~80%)",severidad:"moderado"},{label:"10–15: Clase C — mal pronóstico (~45%), considerar trasplante",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Pugh RN, et al. Br J Surg 1973."
@@ -638,7 +638,7 @@ const CALCS_BASE = [
     return {valor: Math.round(meldNa), unidad:"puntos", detalle:`MELD sin sodio: ${meld}`};
   },
   interpretar(x){
-    const t = band(x,[{max:9,label:"Mortalidad a 90 días ~2%",severidad:"normal"},{max:19,label:"Mortalidad a 90 días ~6–20%",severidad:"leve"},{max:29,label:"Mortalidad a 90 días ~20–50%",severidad:"moderado"},{max:39,label:"Mortalidad a 90 días ~50–75%",severidad:"grave"},{label:"Mortalidad a 90 días >80%",severidad:"critico"}]);
+    const t = band(x,[{max:10,label:"≤9: mortalidad a 90 días ~2%",severidad:"normal"},{max:20,label:"10–19: mortalidad a 90 días ~6%",severidad:"leve"},{max:30,label:"20–29: mortalidad a 90 días ~20%",severidad:"moderado"},{max:40,label:"30–39: mortalidad a 90 días ~53%",severidad:"grave"},{label:"≥40: mortalidad a 90 días ~71%",severidad:"critico"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Kamath PS, et al. Hepatology 2001; UNOS MELD-Na 2016."
@@ -655,25 +655,34 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/5 (ingreso)"}; },
   interpretar(x){
-    const t = band(x,[{max:2,label:"Pancreatitis leve (mortalidad <5%)",severidad:"normal"},{max:4,label:"Pancreatitis moderada (mortalidad ~15%)",severidad:"moderado"},{label:"Pancreatitis grave (mortalidad >40%)",severidad:"grave"}]);
+    const t = band(x,[{max:3,label:"0–2 criterios: pancreatitis leve (mortalidad <5%)",severidad:"normal"},{max:5,label:"3–4 criterios: pancreatitis moderada (mortalidad ~15%)",severidad:"moderado"},{label:"≥5 criterios: pancreatitis grave (mortalidad >40%)",severidad:"grave"}]);
     return {texto:t.label+" — solo criterios de ingreso; faltan 6 criterios a las 48 h para el score completo", severidad:t.severidad};
   },
   referencia:"Ranson JH, et al. Surg Gynecol Obstet 1974."
 },
 {
   id:"blatchford", nombre:"Glasgow-Blatchford (HDA alta)", categoria:"gastro",
-  resumen:"Predice necesidad de intervención en hemorragia digestiva alta.",
+  resumen:"Predice necesidad de intervención (transfusión, endoscopia o cirugía) en hemorragia digestiva alta.",
   campos:[
-    {id:"bun", label:"Nitrógeno ureico (BUN)", tipo:"select", opciones:[{value:"0",label:"<18.2 mg/dL"},{value:"2",label:"18.2–22.3"},{value:"3",label:"22.4–28.0"},{value:"4",label:"28.1–70.0"},{value:"6",label:">70.0"}]},
-    {id:"hbHombre", label:"Hemoglobina (hombres)", tipo:"select", opciones:[{value:"0",label:"≥13 g/dL / no aplica"},{value:"1",label:"12–12.9"},{value:"3",label:"10–11.9"},{value:"6",label:"<10"}]},
-    {id:"pas", label:"PA sistólica", tipo:"select", opciones:[{value:"0",label:"≥110 mmHg"},{value:"1",label:"100–109"},{value:"2",label:"90–99"},{value:"3",label:"<90"}]},
-    {id:"otros", label:"FC ≥100, melena, síncope, hepatopatía o ICC (1-2 pts c/u)", tipo:"select", opciones:[{value:"0",label:"Ninguno"},{value:"2",label:"1–2 presentes"},{value:"4",label:"3 o más presentes"}]},
+    {id:"bun", label:"Nitrógeno ureico (BUN)", tipo:"select", opciones:[{value:"0",label:"<18.2 mg/dL (0)"},{value:"2",label:"18.2–22.3 (2)"},{value:"3",label:"22.4–28.0 (3)"},{value:"4",label:"28.1–70.0 (4)"},{value:"6",label:">70.0 (6)"}]},
+    {id:"hb", label:"Hemoglobina", tipo:"select", opciones:[
+      {value:"0",label:"Hombre ≥13 / Mujer ≥12 g/dL (0)"},
+      {value:"1",label:"Hombre 12–12.9 g/dL (1)"},
+      {value:"3",label:"Hombre 10–11.9 g/dL (3)"},
+      {value:"1",label:"Mujer 10–11.9 g/dL (1)"},
+      {value:"6",label:"Hombre o mujer <10 g/dL (6)"}]},
+    {id:"pas", label:"PA sistólica", tipo:"select", opciones:[{value:"0",label:"≥110 mmHg (0)"},{value:"1",label:"100–109 (1)"},{value:"2",label:"90–99 (2)"},{value:"3",label:"<90 (3)"}]},
+    {id:"fc", label:"Frecuencia cardíaca ≥100 lpm", tipo:"bool", opciones:[{value:"1",label:"Sí"},{value:"0",label:"No"}]},
+    {id:"melena", label:"Melena", tipo:"bool", opciones:[{value:"1",label:"Sí"},{value:"0",label:"No"}]},
+    {id:"sincope", label:"Síncope", tipo:"bool", opciones:[{value:"2",label:"Sí"},{value:"0",label:"No"}]},
+    {id:"hepato", label:"Enfermedad hepática", tipo:"bool", opciones:[{value:"2",label:"Sí"},{value:"0",label:"No"}]},
+    {id:"icc", label:"Insuficiencia cardíaca", tipo:"bool", opciones:[{value:"2",label:"Sí"},{value:"0",label:"No"}]},
   ],
-  calcular(v){ return {valor: sumaCampos(v), unidad:"puntos"}; },
+  calcular(v){ return {valor: sumaCampos(v), unidad:"/23"}; },
   interpretar(x){
-    return x===0
-      ? {texto:"Riesgo muy bajo — puede manejarse ambulatoriamente", severidad:"normal"}
-      : {texto:"Score >0 — considerar hospitalización y endoscopia", severidad: x>=6?"grave":"moderado"};
+    if (x===0) return {texto:"Score 0 — riesgo muy bajo; puede considerarse manejo ambulatorio", severidad:"normal"};
+    if (x<=1) return {texto:"Score 1 — riesgo bajo (algunas guías extienden el manejo ambulatorio a ≤1)", severidad:"leve"};
+    return {texto:"Score ≥2 — hospitalizar y realizar endoscopia; riesgo de intervención aumenta con el puntaje", severidad: x>=6?"grave":"moderado"};
   },
   referencia:"Blatchford O, et al. Lancet 2000."
 },
@@ -689,7 +698,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/7"}; },
   interpretar(x){
-    const t = band(x,[{max:3,label:"Riesgo bajo (~1% a 2 días)",severidad:"normal"},{max:5,label:"Riesgo moderado (~4% a 2 días)",severidad:"moderado"},{label:"Riesgo alto (~8% a 2 días) — hospitalizar y estudiar con urgencia",severidad:"grave"}]);
+    const t = band(x,[{max:4,label:"0–3: riesgo bajo (~1% a 2 días)",severidad:"normal"},{max:6,label:"4–5: riesgo moderado (~4% a 2 días)",severidad:"moderado"},{label:"6–7: riesgo alto (~8% a 2 días) — hospitalizar y estudiar con urgencia",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Johnston SC, et al. Lancet 2007."
@@ -706,7 +715,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"puntos (McIsaac)"}; },
   interpretar(x){
-    const t = band(x,[{max:0,label:"Riesgo ~1–2,5% — no cultivo ni antibiótico",severidad:"normal"},{max:2,label:"Riesgo ~5–17% — cultivo/test rápido antes de antibiótico",severidad:"leve"},{max:3,label:"Riesgo ~28–35% — cultivo/test rápido",severidad:"moderado"},{label:"Riesgo ~51–53% — considerar tratamiento empírico o test rápido",severidad:"grave"}]);
+    const t = band(x,[{max:1,label:"≤0: riesgo ~1–2,5% — no cultivo ni antibiótico",severidad:"normal"},{max:3,label:"1–2: riesgo ~5–17% — cultivo/test rápido antes de antibiótico",severidad:"leve"},{max:4,label:"3: riesgo ~28–35% — cultivo/test rápido",severidad:"moderado"},{label:"≥4: riesgo ~51–53% — considerar tratamiento empírico o test rápido",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"McIsaac WJ, et al. CMAJ 1998."
@@ -723,7 +732,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/10"}; },
   interpretar(x){
-    const t = band(x,[{max:3,label:"Depresión severa — reanimación inmediata",severidad:"critico"},{max:6,label:"Depresión moderada — estimulación y soporte",severidad:"grave"},{label:"Normal",severidad:"normal"}]);
+    const t = band(x,[{max:4,label:"0–3: depresión severa — reanimación inmediata",severidad:"critico"},{max:7,label:"4–6: depresión moderada — estimulación y soporte",severidad:"grave"},{label:"7–10: normal",severidad:"normal"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Apgar V. Curr Res Anesth Analg 1953. Evaluar a 1 y 5 minutos (y 10 min si persiste bajo)."
@@ -759,7 +768,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor:+v.clase, unidad:""}; },
   interpretar(x){
-    const t = band(x,[{max:1,label:"Killip I — mortalidad ~6%",severidad:"normal"},{max:2,label:"Killip II — mortalidad ~17%",severidad:"moderado"},{max:3,label:"Killip III — mortalidad ~38%",severidad:"grave"},{label:"Killip IV — mortalidad ~67%",severidad:"critico"}]);
+    const t = band(x,[{max:2,label:"Killip I — mortalidad ~6%",severidad:"normal"},{max:3,label:"Killip II — mortalidad ~17%",severidad:"moderado"},{max:4,label:"Killip III — mortalidad ~38%",severidad:"grave"},{label:"Killip IV — mortalidad ~67%",severidad:"critico"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Killip T, Kimball JT. Am J Cardiol 1967."
@@ -778,7 +787,7 @@ const CALCS_BASE = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/7"}; },
   interpretar(x){
-    const t = band(x,[{max:2,label:"Riesgo bajo (~5-8% eventos a 14 días)",severidad:"normal"},{max:4,label:"Riesgo intermedio (~13-20%)",severidad:"moderado"},{label:"Riesgo alto (~26-41%) — estrategia invasiva precoz",severidad:"grave"}]);
+    const t = band(x,[{max:3,label:"0–2: riesgo bajo (~5-8% eventos a 14 días)",severidad:"normal"},{max:5,label:"3–4: riesgo intermedio (~13-20%)",severidad:"moderado"},{label:"5–7: riesgo alto (~26-41%) — estrategia invasiva precoz",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Antman EM, et al. JAMA 2000."
@@ -830,7 +839,7 @@ const CALCS_BASE = [
   calcular(v){
     const k=v.k;
     let dosis, ritmo;
-    if (k>=3.5){ dosis="20–40 mEq"; ritmo="vía oral si es posible, o EV a ≤10 mEq/h"; }
+    if (k>=3.5){ dosis="Sin reposición habitual"; ritmo="potasio en rango normal; reevaluar según pérdidas y fármacos"; }
     else if (k>=3.0){ dosis="40–60 mEq"; ritmo="EV a ≤10 mEq/h por vía periférica"; }
     else if (k>=2.5){ dosis="60–80 mEq"; ritmo="EV a ≤10–20 mEq/h; considerar monitorización ECG"; }
     else { dosis="80–100+ mEq"; ritmo="EV con monitorización ECG continua; >10 mEq/h requiere vía central"; }
@@ -889,7 +898,7 @@ const CALCS_BASE = [
     {id:"ph", label:"pH arterial", tipo:"select", opciones:[{value:"4",label:"≥7.7 o <7.15 (4)"},{value:"3",label:"7.6–7.69 o 7.15–7.24 (3)"},{value:"2",label:"7.25–7.32 (2)"},{value:"1",label:"7.5–7.59 (1)"},{value:"0",label:"7.33–7.49 (0)"}]},
     {id:"na", label:"Sodio sérico", tipo:"select", opciones:[{value:"4",label:"≥180 o <111 mEq/L (4)"},{value:"3",label:"160–179 o 111–119 mEq/L (3)"},{value:"2",label:"155–159 o 120–129 mEq/L (2)"},{value:"1",label:"150–154 mEq/L (1)"},{value:"0",label:"130–149 mEq/L (0)"}]},
     {id:"k", label:"Potasio sérico", tipo:"select", opciones:[{value:"4",label:"≥7 o <2.5 mEq/L (4)"},{value:"3",label:"6–6.9 mEq/L (3)"},{value:"2",label:"2.5–2.9 mEq/L (2)"},{value:"1",label:"5.5–5.9 o 3–3.4 mEq/L (1)"},{value:"0",label:"3.5–5.4 mEq/L (0)"}]},
-    {id:"cr", label:"Creatinina sérica", tipo:"select", opciones:[{value:"3.5",label:"≥3.5 mg/dL (3.5)"},{value:"2",label:"2–3.4 mg/dL (2)"},{value:"1.5",label:"1.5–1.9 mg/dL (1.5)"},{value:"1",label:"<0.6 mg/dL (1)"},{value:"0",label:"0.6–1.4 mg/dL (0)"}]},
+    {id:"cr", label:"Creatinina sérica", tipo:"select", opciones:[{value:"4",label:"≥3.5 mg/dL (4)"},{value:"3",label:"2–3.4 mg/dL (3)"},{value:"2",label:"1.5–1.9 mg/dL (2)"},{value:"0",label:"0.6–1.4 mg/dL (0)"},{value:"2",label:"<0.6 mg/dL (2)"}]},
     {id:"faga", label:"Falla renal aguda (duplica puntos de creatinina)", tipo:"bool", opciones:[{value:"1",label:"Sí"},{value:"0",label:"No"}]},
     {id:"hto", label:"Hematocrito", tipo:"select", opciones:[{value:"4",label:"≥60 o <20% (4)"},{value:"2",label:"50–59.9 o 20–29.9% (2)"},{value:"1",label:"46–49.9% (1)"},{value:"0",label:"30–45.9% (0)"}]},
     {id:"leuco", label:"Leucocitos", tipo:"select", opciones:[{value:"4",label:"≥40 o <1 (×10³/µL) (4)"},{value:"2",label:"20–39.9 o 1–2.9 (×10³/µL) (2)"},{value:"1",label:"15–19.9 ×10³/µL (1)"},{value:"0",label:"3–14.9 ×10³/µL (0)"}]},

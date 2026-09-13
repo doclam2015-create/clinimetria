@@ -1,4 +1,4 @@
-const CACHE = "clinimetria-v2";
+const CACHE = "clinimetria-v3";
 const ASSETS = [
   "./",
   "./index.html",

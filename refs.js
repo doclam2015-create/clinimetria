@@ -95,7 +95,7 @@ const REFS = [
 // G6PD
 {grupo:"Fármacos a evitar en déficit de G6PD", nombre:"Riesgo alto — evitar", valor:"Dapsona, primaquina, rasburicasa, azul de metileno, nitrofurantoína", unidad:""},
 {grupo:"Fármacos a evitar en déficit de G6PD", nombre:"Riesgo moderado — precaución", valor:"Sulfametoxazol/trimetoprim, cloroquina, ácido nalidíxico, vitamina K (altas dosis)", unidad:""},
-{grupo:"Fármacos a evitar en déficit de G6PD", nombre:"Riesgo bajo — generalmente seguros", valor:"Paracetamol, ácido acetilsalicílico (dosis bajas), cloranfenicol", unidad:""},
+{grupo:"Fármacos a evitar en déficit de G6PD", nombre:"Riesgo bajo — generalmente seguros", valor:"Paracetamol, ácido acetilsalicílico (dosis bajas), vitamina C (dosis habituales)", unidad:""},
 // Requerimiento proteico
 {grupo:"Requerimiento de proteínas por edad", nombre:"Lactante 0–6 meses", valor:"1.52", unidad:"g/kg/día"},
 {grupo:"Requerimiento de proteínas por edad", nombre:"Niño 1–3 años", valor:"1.05", unidad:"g/kg/día"},

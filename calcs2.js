@@ -588,7 +588,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/10"}; },
   interpretar(x){
-    const t = band(x,[{max:4,label:"Baja probabilidad",severidad:"normal"},{max:6,label:"Posible apendicitis — observación/imágenes",severidad:"moderado"},{max:8,label:"Probable apendicitis — evaluación quirúrgica",severidad:"grave"},{label:"Muy probable apendicitis",severidad:"critico"}]);
+    const t = band(x,[{max:5,label:"≤4: baja probabilidad",severidad:"normal"},{max:7,label:"5–6: posible apendicitis — observación/imágenes",severidad:"moderado"},{max:9,label:"7–8: probable apendicitis — evaluación quirúrgica",severidad:"grave"},{label:"9–10: muy probable apendicitis",severidad:"critico"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Alvarado A. Ann Emerg Med 1986 (MANTRELS). Rendimiento variable según población."
@@ -608,7 +608,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/10"}; },
   interpretar(x){
-    const t = band(x,[{max:3,label:"Baja probabilidad",severidad:"normal"},{max:6,label:"Probabilidad indeterminada — observación/imágenes",severidad:"moderado"},{label:"Alta probabilidad — evaluación quirúrgica",severidad:"grave"}]);
+    const t = band(x,[{max:4,label:"≤3: baja probabilidad",severidad:"normal"},{max:7,label:"4–6: probabilidad indeterminada — observación/imágenes",severidad:"moderado"},{label:"≥7: alta probabilidad — evaluación quirúrgica",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Samuel M. J Pediatr Surg 2002 (Pediatric Appendicitis Score)."
@@ -627,7 +627,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/12"}; },
   interpretar(x){
-    const t = band(x,[{max:4,label:"Riesgo bajo",severidad:"normal"},{max:8,label:"Riesgo indeterminado — observación/imágenes",severidad:"moderado"},{label:"Riesgo alto de apendicitis",severidad:"grave"}]);
+    const t = band(x,[{max:5,label:"0–4: riesgo bajo",severidad:"normal"},{max:9,label:"5–8: riesgo indeterminado — observación/imágenes",severidad:"moderado"},{label:"9–12: riesgo alto de apendicitis",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Andersson M, Andersson RE. World J Surg 2008 (Appendicitis Inflammatory Response score)."
@@ -643,7 +643,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/4 predictores"}; },
   interpretar(x){
-    const t = band(x,[{max:0,label:"Probabilidad de artritis séptica <0.2%",severidad:"normal"},{max:1,label:"Probabilidad ~3%",severidad:"leve"},{max:2,label:"Probabilidad ~40%",severidad:"moderado"},{max:3,label:"Probabilidad ~93%",severidad:"grave"},{label:"Probabilidad ~99%",severidad:"critico"}]);
+    const t = band(x,[{max:1,label:"0 predictores: probabilidad de artritis séptica <0.2%",severidad:"normal"},{max:2,label:"1 predictor: probabilidad ~3%",severidad:"leve"},{max:3,label:"2 predictores: probabilidad ~40%",severidad:"moderado"},{max:4,label:"3 predictores: probabilidad ~93%",severidad:"grave"},{label:"4 predictores: probabilidad ~99%",severidad:"critico"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Kocher MS, et al. J Bone Joint Surg Am 1999."
@@ -660,7 +660,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/5"}; },
   interpretar(x){
-    const t = band(x,[{max:1,label:"Baja probabilidad de estreptococo (13-18%) — no antibiótico",severidad:"normal"},{max:3,label:"Probabilidad moderada (34-40%)",severidad:"moderado"},{label:"Alta probabilidad (62-65%) — considerar antibiótico",severidad:"grave"}]);
+    const t = band(x,[{max:2,label:"0–1: baja probabilidad de estreptococo (13-18%) — no antibiótico",severidad:"normal"},{max:4,label:"2–3: probabilidad moderada (34-40%)",severidad:"moderado"},{label:"4–5: alta probabilidad (62-65%) — considerar antibiótico",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Little P, et al. Health Technol Assess 2014 (estudio PRISM)."
@@ -677,7 +677,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/17"}; },
   interpretar(x){
-    const t = band(x,[{max:2,label:"Crup leve",severidad:"normal"},{max:7,label:"Crup moderado",severidad:"moderado"},{max:11,label:"Crup severo",severidad:"grave"},{label:"Falla respiratoria inminente",severidad:"critico"}]);
+    const t = band(x,[{max:3,label:"≤2: crup leve",severidad:"normal"},{max:8,label:"3–7: crup moderado",severidad:"moderado"},{max:12,label:"8–11: crup severo",severidad:"grave"},{label:"≥12: falla respiratoria inminente",severidad:"critico"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Westley CR, et al. Am J Dis Child 1978."
@@ -694,7 +694,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/10"}; },
   interpretar(x){
-    const t = band(x,[{max:0,label:"Sin dolor",severidad:"normal"},{max:3,label:"Dolor leve",severidad:"leve"},{max:6,label:"Dolor moderado",severidad:"moderado"},{label:"Dolor severo",severidad:"grave"}]);
+    const t = band(x,[{max:1,label:"0: sin dolor",severidad:"normal"},{max:4,label:"1–3: dolor leve",severidad:"leve"},{max:7,label:"4–6: dolor moderado",severidad:"moderado"},{label:"7–10: dolor severo",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Merkel S, et al. Pediatr Nurs 1997 (FLACC scale)."
@@ -729,7 +729,7 @@ const CALCS2 = [
   ],
   calcular(v){ return {valor: sumaCampos(v), unidad:"/12"}; },
   interpretar(x){
-    const t = band(x,[{max:1,label:"Remisión / síntomas mínimos",severidad:"normal"},{max:3,label:"Síntomas leves",severidad:"leve"},{label:"Síntomas significativos — evaluar falla terapéutica",severidad:"moderado"}]);
+    const t = band(x,[{max:2,label:"0–1 (estadio 0): remisión",severidad:"normal"},{max:4,label:"2–3 (estadio I): síntomas leves",severidad:"leve"},{max:7,label:"4–6 (estadio II): síntomas moderados",severidad:"moderado"},{label:">6 (estadio III): síntomas graves — evaluar falla terapéutica",severidad:"grave"}]);
     return {texto:t.label, severidad:t.severidad};
   },
   referencia:"Eckardt VF, et al. Gastroenterology 1992."
